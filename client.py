@@ -28,9 +28,6 @@ def main():
             else:
                 msg = raw_input()
                 s.send(msg)
-
-        
-
     s.close()
 
 if __name__ == "__main__":
