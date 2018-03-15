@@ -27,7 +27,8 @@ def main():
                     print data
             else:
                 msg = raw_input()
-                s.send(msg)
+                final_msg = username + ": " + msg
+                s.send(final_msg)
     s.close()
 
 if __name__ == "__main__":
