@@ -36,7 +36,6 @@ def main():
                     print data
             else:
                 msg = raw_input()
-                print msg[0:4]
                 if msg[0:5] == '$boot':
                     admin = raw_input('Enter password: ')
                     if admin == ADMIN_PWD:
