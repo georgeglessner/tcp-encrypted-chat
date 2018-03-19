@@ -1,8 +1,0 @@
-{
-    "python.linting.pylintEnabled": false,
-    "files.associations": {
-        "*.awk": "shellscript",
-        "string.h": "c",
-        "stdlib.h": "c"
-    }
-}
