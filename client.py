@@ -10,10 +10,18 @@ def main():
     s = socket.socket()
     ip_addr = raw_input('Enter an IP Adrress: ')
     port = input('Enter a Port Number: ')
-    username = raw_input('Enter a Username: ')
-
     s.connect((ip_addr, port))
-    s.send(username)
+    running = 1
+    while running:
+        username = raw_input('Enter a Username: ')
+        s.send(username)
+        data = s.recv(1024)
+        print data
+        if data != 'Username already taken... Please use another.':
+            break
+
+    
+    
     s.setblocking(0)
     inout = [sys.stdin, s]
 
@@ -21,7 +29,7 @@ def main():
     print 'CHAT'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
-    running = 1
+    
     while(running):
         readable, writable, exeptional = select.select(inout, [], [])
         for sock in readable:
@@ -46,7 +54,7 @@ def main():
                 else:
                     final_msg = username + ': ' + msg
                     s.send(final_msg)
-    # s.close()
+    
 
 
 if __name__ == '__main__':

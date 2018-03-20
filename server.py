@@ -52,9 +52,18 @@ def main():
                 else:
                     print 'Received from', str(data)
                     if username_flag:
-                        client_list.append(data)
-                        username_flag = 0
-                        break
+                        if data in client_list:
+                            data = 'Username already taken... Please use another.'
+                            username_flag = 1
+                            message_queues[s].put(data)
+                            outputs.append(s)
+                        else:
+                            client_list.append(data)
+                            data = 'Valid username... Connecting to chat.'
+                            username_flag = 0
+                            message_queues[s].put(data)
+                            outputs.append(s)
+                            break
                     if data:
                         # If data is a command
                         temp = data.split()
@@ -110,6 +119,7 @@ def main():
                     # Client Disconnected
                     else:
                         if s in outputs:
+                            print index(s)
                             outputs.remove(s)
                             client
                         inputs.remove(s)
