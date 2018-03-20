@@ -78,6 +78,7 @@ def main():
                             if temp[1] == '$boot':
                                 if temp[2] in client_list:
                                     recipient = client_list.index(temp[2])
+                                    client_list.pop(recipient)
                                     recipient += 1
                                     temp_data = 'close_socket'
                                     message_queues[inputs[recipient]].put(
