@@ -5,9 +5,6 @@ import socket
 import sys
 import Queue
 
-ADMIN_PWD = 'pwd'
-
-
 def broadcast_msg(command):
     temp = command.split()
     temp[1] = temp[1].replace(temp[1][0], '[')
@@ -19,7 +16,7 @@ def broadcast_msg(command):
 
 
 def main():
-    global server, ADMIN_PWD
+    global server
     ip_addr = int(raw_input('Enter a Port Number: '))
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setblocking(0)
@@ -53,18 +50,30 @@ def main():
                     print 'Received from', str(data)
                     if username_flag:
                         if data in client_list:
-                            data = 'Username already taken... Please use another.'
+                            temp = 'Username already taken... Please use another.'
                             username_flag = 1
-                            message_queues[s].put(data)
+                            message_queues[s].put(temp)
                             outputs.append(s)
+                            break
                         else:
                             client_list.append(data)
-                            data = 'Valid username... Connecting to chat.'
+                            temp = 'Valid username... Connecting to chat.'
                             username_flag = 0
-                            message_queues[s].put(data)
+                            message_queues[s].put(temp)
                             outputs.append(s)
                             break
                     if data:
+                        is_quit = data.split(': ')
+                        if is_quit[1] == 'quit':
+                            if is_quit[0] in client_list:
+                                recipient = client_list.index(is_quit[0])
+                                client_list.pop(recipient)
+                                temp_data = 'close_socket'
+                                recipient += 1
+                                message_queues[inputs[recipient]].put(temp_data)
+                                outputs.append(inputs[recipient])
+                                recipient = inputs.index(s)
+                                inputs.pop(recipient)
                         # If data is a command
                         temp = data.split()
                         if temp[1][0] == '$':
@@ -88,7 +97,6 @@ def main():
                                 if temp[2] in client_list:
                                     recipient = client_list.index(temp[2])
                                     client_list.pop(recipient)
-                                    recipient += 1
                                     temp_data = 'close_socket'
                                     message_queues[inputs[recipient]].put(
                                         temp_data)
@@ -119,7 +127,6 @@ def main():
                     # Client Disconnected
                     else:
                         if s in outputs:
-                            print index(s)
                             outputs.remove(s)
                             client
                         inputs.remove(s)

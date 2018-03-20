@@ -44,7 +44,10 @@ def main():
                     print data
             else:
                 msg = raw_input()
-                if msg[0:5] == '$boot':
+                if msg == 'quit':
+                    final_msg = username + ': ' + msg
+                    s.send(final_msg)
+                elif msg[0:5] == '$boot':
                     admin = raw_input('Enter password: ')
                     if admin == ADMIN_PWD:
                         final_msg = username + ': ' + msg
