@@ -23,6 +23,7 @@ def main():
     
     # Generate symmetric key
     fernet_key = Fernet.generate_key()
+    print fernet_key
 
     # RSA encrypt the symmetric key
     encrypted_pub_key = pub_key.encrypt(

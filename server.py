@@ -8,6 +8,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers.algorithms import AES
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
 
 def broadcast_msg(command):
     temp = command.split()
@@ -46,8 +48,28 @@ def generate_keys():
 
     return 0
 
+
+def decrypt_symmetric_key(private_key,data):
+    plaintext = private_key.decrypt(
+        data,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    print plaintext
+    return
+
+
 def main():
-    test = generate_keys()
+    with open("private_key.pem", "rb") as key_file:
+        private_key = serialization.load_pem_private_key(
+            key_file.read(),
+            password=None,
+            backend=default_backend()
+        )
+
 
     global server
     ip_addr = int(raw_input('Enter a Port Number: '))
@@ -59,6 +81,7 @@ def main():
     outputs = []
     message_queues = {}
     username_flag = 1
+    symmetric_key_flag = 1
     client_list = []
 
     print 'Server Running...'
@@ -80,7 +103,10 @@ def main():
                     pass
                 else:
                     print 'Received from', str(data)
-                    if username_flag:
+                    if symmetric_key_flag:
+                        decrypt_symmetric_key(private_key,data)
+                        symmetric_key_flag = 0  
+                    elif username_flag:
                         if data in client_list:
                             temp = 'Username already taken... Please use another.'
                             username_flag = 1
