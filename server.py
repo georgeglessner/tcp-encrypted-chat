@@ -46,9 +46,6 @@ def generate_keys():
 
     return 0
 
-
-
-
 def main():
     test = generate_keys()
 
