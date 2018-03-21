@@ -42,10 +42,6 @@ def generate_keys():
        format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
     pub.splitlines()[0]
-
-    print priv
-    print pub
-
     return 0
 
 
@@ -105,7 +101,11 @@ def main():
                     print 'Received from', str(data)
                     if symmetric_key_flag:
                         decrypt_symmetric_key(private_key,data)
-                        symmetric_key_flag = 0  
+                        symmetric_key_flag = 0
+                        temp = 'Established encrypted connection to server'
+                        message_queues[s].put(temp)
+                        outputs.append(s)
+                        break
                     elif username_flag:
                         if data in client_list:
                             temp = 'Username already taken... Please use another.'
@@ -122,6 +122,7 @@ def main():
                             break
                     if data:
                         is_quit = data.split(': ')
+                        print is_quit
                         if is_quit[1] == 'quit':
                             if is_quit[0] in client_list:
                                 recipient = client_list.index(is_quit[0])
