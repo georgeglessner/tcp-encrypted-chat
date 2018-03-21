@@ -1,9 +1,13 @@
 #!/usr/bin/env python
-
 import select
 import socket
 import sys
 import Queue
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.ciphers.algorithms import AES
+from cryptography.hazmat.primitives import serialization
 
 def broadcast_msg(command):
     temp = command.split()
@@ -14,8 +18,40 @@ def broadcast_msg(command):
     temp[0] = swap_temp
     return ' '.join(temp)
 
+def generate_keys():
+    # Private key generation
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+
+    priv = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    priv.splitlines()[0]
+
+    public_key = private_key.public_key()
+    pub = public_key.public_bytes(
+       encoding=serialization.Encoding.PEM,
+       format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    pub.splitlines()[0]
+
+    print priv
+    print pub
+
+    return 0
+
+
+
 
 def main():
+    test = generate_keys()
+
     global server
     ip_addr = int(raw_input('Enter a Port Number: '))
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,7 +65,6 @@ def main():
     client_list = []
 
     print 'Server Running...'
-
     while inputs:
         readable, writable, exceptional = select.select(
             inputs, outputs, inputs)

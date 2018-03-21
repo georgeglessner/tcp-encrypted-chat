@@ -3,14 +3,43 @@
 import select
 import socket
 import sys
+import random
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.fernet import Fernet
 
 ADMIN_PWD = 'pwd'
 
 def main():
+    # Read public key from file and convert it to public_key type
+    file = open("public_key.pem", "r")
+    pub_key_data = file.read()
+    pub_key = load_pem_public_key(pub_key_data, backend=default_backend())
+    
+    # Generate symmetric key
+    fernet_key = Fernet.generate_key()
+
+    # RSA encrypt the symmetric key
+    encrypted_pub_key = pub_key.encrypt(
+        fernet_key,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+
+    # establish connection with chat server
     s = socket.socket()
     ip_addr = raw_input('Enter an IP Adrress: ')
     port = input('Enter a Port Number: ')
     s.connect((ip_addr, port))
+    s.send(encrypted_pub_key)
     running = 1
     while running:
         username = raw_input('Enter a Username: ')
@@ -20,8 +49,6 @@ def main():
         if data != 'Username already taken... Please use another.':
             break
 
-    
-    
     s.setblocking(0)
     inout = [sys.stdin, s]
 
@@ -29,7 +56,7 @@ def main():
     print 'CHAT'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
-    
+
     while(running):
         readable, writable, exeptional = select.select(inout, [], [])
         for sock in readable:
@@ -57,8 +84,6 @@ def main():
                 else:
                     final_msg = username + ': ' + msg
                     s.send(final_msg)
-    
-
 
 if __name__ == '__main__':
     main()
