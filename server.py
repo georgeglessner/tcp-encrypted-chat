@@ -50,7 +50,7 @@ def generate_keys():
 
 
 def decrypt_symmetric_key(private_key, data):
-    symmetric_key = private_key.decrypt(
+    message = private_key.decrypt(
         data,
         padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -58,7 +58,7 @@ def decrypt_symmetric_key(private_key, data):
             label=None
         )
     )
-    return symmetric_key
+    return message
 
 
 def main():
@@ -133,8 +133,8 @@ def main():
 
                         # Decrypts the symmetric key
                         f = Fernet(token)
-                        symmetric_key = f.decrypt(data)
-                        data = symmetric_key
+                        message = f.decrypt(data)
+                        data = message
 
                         is_quit = data.split(': ')
                         if is_quit[1] == 'quit':
