@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import select
 import socket
 import sys
@@ -12,6 +13,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet
 
+
 def broadcast_msg(command):
     temp = command.split()
     temp[1] = temp[1].replace(temp[1][0], '[')
@@ -20,6 +22,7 @@ def broadcast_msg(command):
     temp[1] = temp[0]
     temp[0] = swap_temp
     return ' '.join(temp)
+
 
 def generate_keys():
     # Private key generation
@@ -39,14 +42,15 @@ def generate_keys():
 
     public_key = private_key.public_key()
     pub = public_key.public_bytes(
-       encoding=serialization.Encoding.PEM,
-       format=serialization.PublicFormat.SubjectPublicKeyInfo
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
     pub.splitlines()[0]
     return 0
 
-def decrypt_symmetric_key(private_key,data):
-    plaintext = private_key.decrypt(
+
+def decrypt_symmetric_key(private_key, data):
+    symmetric_key = private_key.decrypt(
         data,
         padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -54,8 +58,7 @@ def decrypt_symmetric_key(private_key,data):
             label=None
         )
     )
-    print plaintext
-    return plaintext
+    return symmetric_key
 
 
 def main():
@@ -65,7 +68,6 @@ def main():
             password=None,
             backend=default_backend()
         )
-
 
     global server
     ip_addr = int(raw_input('Enter a Port Number: '))
@@ -89,7 +91,6 @@ def main():
             if s is server:
                 connection, client_address = s.accept()
                 connection.setblocking(0)
-                print connection
                 inputs.append(connection)
                 message_queues[connection] = Queue.Queue()
                 username_flag = 1
@@ -100,9 +101,9 @@ def main():
                 if data == '':
                     pass
                 else:
-                    print 'Received from', str(data)
                     if symmetric_key_flag:
-                        hold_symmetric_key = decrypt_symmetric_key(private_key,data)
+                        hold_symmetric_key = decrypt_symmetric_key(
+                            private_key, data)
                         symmetric_key_flag = 0
                         temp = 'Established encrypted connection to server'
                         message_queues[s].put(temp)
@@ -132,9 +133,9 @@ def main():
 
                         # Decrypts the symmetric key
                         f = Fernet(token)
-                        plaintext = f.decrypt(data)
-                        data = plaintext
-                        
+                        symmetric_key = f.decrypt(data)
+                        data = symmetric_key
+
                         is_quit = data.split(': ')
                         if is_quit[1] == 'quit':
                             if is_quit[0] in client_list:
@@ -142,7 +143,8 @@ def main():
                                 client_list.pop(recipient)
                                 temp_data = 'close_socket'
                                 recipient += 1
-                                message_queues[inputs[recipient]].put(temp_data)
+                                message_queues[inputs[recipient]].put(
+                                    temp_data)
                                 outputs.append(inputs[recipient])
                                 recipient = inputs.index(s)
                                 inputs.pop(recipient)
@@ -168,11 +170,13 @@ def main():
                             if temp[1] == '$boot':
                                 if temp[2] in client_list:
                                     recipient = client_list.index(temp[2])
-                                    client_list.pop(recipient)
                                     temp_data = 'close_socket'
+                                    client_list.pop(recipient)
+                                    recipient += 1
                                     message_queues[inputs[recipient]].put(
                                         temp_data)
                                     outputs.append(inputs[recipient])
+                                    inputs.pop(recipient)
                                 else:
                                     data = 'Client not in list'
                             # Invalid command
