@@ -15,15 +15,16 @@ from cryptography.fernet import Fernet
 
 ADMIN_PWD = 'pwd'
 
+
 def main():
     # Read public key from file and convert it to public_key type
     file = open("public_key.pem", "r")
     pub_key_data = file.read()
     pub_key = load_pem_public_key(pub_key_data, backend=default_backend())
-    
+
     # Generate symmetric key
     fernet_key = Fernet.generate_key()
-    print fernet_key
+    f = Fernet(fernet_key)
 
     # RSA encrypt the symmetric key
     encrypted_pub_key = pub_key.encrypt(
@@ -42,13 +43,11 @@ def main():
     s.connect((ip_addr, port))
     s.send(encrypted_pub_key)
     data = s.recv(1024)
-    print data
     running = 1
     while running:
         username = raw_input('Enter a Username: ')
         s.send(username)
         data = s.recv(1024)
-        print data
         if data != 'Username already taken... Please use another.':
             break
 
@@ -58,7 +57,6 @@ def main():
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
     print 'CHAT'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-
 
     while(running):
         readable, writable, exeptional = select.select(inout, [], [])
@@ -76,17 +74,21 @@ def main():
                 msg = raw_input()
                 if msg == 'quit':
                     final_msg = username + ': ' + msg
-                    s.send(final_msg)
+                    token = f.encrypt(final_msg)
+                    s.send(token)
                 elif msg[0:5] == '$boot':
                     admin = raw_input('Enter password: ')
                     if admin == ADMIN_PWD:
                         final_msg = username + ': ' + msg
-                        s.send(final_msg)
+                        token = f.encrypt(final_msg)
+                        s.send(token)
                     else:
                         print 'Invalid Password!'
                 else:
                     final_msg = username + ': ' + msg
-                    s.send(final_msg)
+                    token = f.encrypt(final_msg)
+                    s.send(token)
+
 
 if __name__ == '__main__':
     main()
