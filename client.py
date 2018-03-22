@@ -23,6 +23,7 @@ def main():
     
     # Generate symmetric key
     fernet_key = Fernet.generate_key()
+    f = Fernet(fernet_key)
     print fernet_key
 
     # RSA encrypt the symmetric key
@@ -76,17 +77,20 @@ def main():
                 msg = raw_input()
                 if msg == 'quit':
                     final_msg = username + ': ' + msg
-                    s.send(final_msg)
+                    token = f.encrypt(final_msg)
+                    s.send(token)
                 elif msg[0:5] == '$boot':
                     admin = raw_input('Enter password: ')
                     if admin == ADMIN_PWD:
                         final_msg = username + ': ' + msg
-                        s.send(final_msg)
+                        token = f.encrypt(final_msg)
+                        s.send(token)
                     else:
                         print 'Invalid Password!'
                 else:
                     final_msg = username + ': ' + msg
-                    s.send(final_msg)
+                    token = f.encrypt(final_msg)
+                    s.send(token)
 
 if __name__ == '__main__':
     main()

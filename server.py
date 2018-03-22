@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.ciphers.algorithms import AES
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
+from cryptography.fernet import Fernet
 
 def broadcast_msg(command):
     temp = command.split()
@@ -44,7 +45,6 @@ def generate_keys():
     pub.splitlines()[0]
     return 0
 
-
 def decrypt_symmetric_key(private_key,data):
     plaintext = private_key.decrypt(
         data,
@@ -55,7 +55,7 @@ def decrypt_symmetric_key(private_key,data):
         )
     )
     print plaintext
-    return
+    return plaintext
 
 
 def main():
@@ -79,6 +79,7 @@ def main():
     username_flag = 1
     symmetric_key_flag = 1
     client_list = []
+    symmetric_key_list = {}
 
     print 'Server Running...'
     while inputs:
@@ -92,6 +93,7 @@ def main():
                 inputs.append(connection)
                 message_queues[connection] = Queue.Queue()
                 username_flag = 1
+                symmetric_key_flag = 1
             else:
                 data = s.recv(1024)
                 # don't print if client disconnects
@@ -100,7 +102,7 @@ def main():
                 else:
                     print 'Received from', str(data)
                     if symmetric_key_flag:
-                        decrypt_symmetric_key(private_key,data)
+                        hold_symmetric_key = decrypt_symmetric_key(private_key,data)
                         symmetric_key_flag = 0
                         temp = 'Established encrypted connection to server'
                         message_queues[s].put(temp)
@@ -119,10 +121,21 @@ def main():
                             username_flag = 0
                             message_queues[s].put(temp)
                             outputs.append(s)
+                            symmetric_key_list[data] = hold_symmetric_key
                             break
                     if data:
+                        # Gets the clients symmetric key
+                        client = inputs.index(s)
+                        client -= 1
+                        client = client_list[client]
+                        token = symmetric_key_list.get(client)
+
+                        # Decrypts the symmetric key
+                        f = Fernet(token)
+                        plaintext = f.decrypt(data)
+                        data = plaintext
+                        
                         is_quit = data.split(': ')
-                        print is_quit
                         if is_quit[1] == 'quit':
                             if is_quit[0] in client_list:
                                 recipient = client_list.index(is_quit[0])
