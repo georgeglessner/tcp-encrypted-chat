@@ -71,7 +71,7 @@ def decrypt_symmetric_key(private_key, data):
 
 
 def encrypt_message(message, recipient):
-    ''' Encrypt message to be send to specified recipient '''
+    ''' Encrypt message to be sent to specified recipient '''
     global symmetric_key_list
     fernet_key = symmetric_key_list.get(recipient)
     f = Fernet(fernet_key)
@@ -189,33 +189,28 @@ def main():
                                 index = 0
                                 for client in client_list:
                                     if client[1] == s:
-                                        client = client[0]
+                                        recipient = client[0]
+                                        break
                                     else:
                                         index += 1
                                 index += 1
-                                token = encrypt_message(data, client)
+                                token = encrypt_message(data, recipient)
                                 message_queues[inputs[index]].put(
                                     token)
                                 outputs.append(inputs[index])
                             # send broadcast message
                             if temp[1] == '$broadcast':
-                                count = 0
-                                for client in inputs:
-                                    if count == 0:
-                                        count += 1
-                                    else:
-                                        index = 0
-                                        for client in client_list:
-                                            recipient = client[0]
-                                            index += 1
-                                            message = broadcast_msg(
-                                                data, client)
-                                            token = encrypt_message(
-                                                message, recipient)
-                                            message_queues[inputs[index]].put(
-                                                token)
-                                            outputs.append(inputs[index])
-                                            count += 1
+                                index = 0
+                                for client in client_list:
+                                    recipient = client[0]
+                                    index += 1
+                                    message = broadcast_msg(
+                                        data, client)
+                                    token = encrypt_message(
+                                        message, recipient)
+                                    message_queues[inputs[index]].put(
+                                        token)
+                                    outputs.append(inputs[index])
                             if temp[1] == '$boot':
                                 if temp[2] in chain.from_iterable(client_list):
                                     index = 0

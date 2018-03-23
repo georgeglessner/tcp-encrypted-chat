@@ -54,6 +54,7 @@ def main():
     s.connect((ip_addr, port))
     s.send(encrypted_pub_key)
     data = s.recv(1024)
+    print 'DATA', data
     running = 1
     while running:
         username = raw_input('Enter a Username: ')
