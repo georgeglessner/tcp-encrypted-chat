@@ -16,7 +16,18 @@ from cryptography.fernet import Fernet
 ADMIN_PWD = 'pwd'
 
 
+def decrypt_message(key, data):
+    ''' Decrypt message sent from server '''
+    global fernet_key
+
+    f = Fernet(fernet_key)
+    message = f.decrypt(data)
+    return message
+
+
 def main():
+    global fernet_key
+
     # Read public key from file and convert it to public_key type
     file = open("public_key.pem", "r")
     pub_key_data = file.read()
@@ -65,6 +76,7 @@ def main():
         for sock in readable:
             if sock == s:
                 data = sock.recv(1024)
+                data = decrypt_message(sock, data)
                 if data == 'close_socket':
                     print 'Connection Closed'
                     s.close()
@@ -79,7 +91,7 @@ def main():
                     final_msg = username + ': ' + msg
                     token = f.encrypt(final_msg)
                     s.send(token)
-                elif msg[0:5] == '$boot':
+                if msg[0:5] == '$boot':
                     admin = raw_input('Enter password: ')
                     if admin == ADMIN_PWD:
                         final_msg = username + ': ' + msg
@@ -87,7 +99,7 @@ def main():
                         s.send(token)
                     else:
                         print 'Invalid Password!'
-                else:
+                if msg[0:5] != '$boot':
                     final_msg = username + ': ' + msg
                     token = f.encrypt(final_msg)
                     s.send(token)
